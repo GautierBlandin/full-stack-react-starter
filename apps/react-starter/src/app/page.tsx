@@ -1,4 +1,10 @@
+'use client'
+
 import { Todos } from '@react-starter/todo';
+import React from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const queryClient = new QueryClient();
 
 export default function Index() {
   /*
@@ -7,6 +13,8 @@ export default function Index() {
    * Note: The corresponding styles are in the ./index.tailwind file.
    */
   return (
-    <Todos />
+    <QueryClientProvider client={queryClient}>
+      <Todos />
+    </QueryClientProvider>
   );
 }
