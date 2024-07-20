@@ -1,3 +1,3 @@
-export function TodoList() {
+export function Todos() {
   return <div>TodoList</div>;
 }
