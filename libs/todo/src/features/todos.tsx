@@ -1,6 +1,6 @@
 import { InMemoryTodoRepository } from '../infra/todo-repository';
-import { useEffect, useState } from 'react';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { TodoList } from '../ui/todo-list';
 import { Todo } from '../model/todo';
 import { TodosStoreProvider } from '../domain/todos.store-provider';
