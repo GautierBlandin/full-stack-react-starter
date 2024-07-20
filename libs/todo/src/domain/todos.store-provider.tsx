@@ -5,8 +5,8 @@ import { TodosStoreContext } from './todos.store-context';
 
 type TodosProviderProps = PropsWithChildren<TodosProps>;
 
-export function TodosStoreProvider({ children }: TodosProviderProps) {
-  const todosStore = useRef(createTodosStore());
+export function TodosStoreProvider({ initialTodos, setAllTodos, children }: TodosProviderProps) {
+  const todosStore = useRef(createTodosStore({ initialTodos, setAllTodos }));
 
   return (
     <TodosStoreContext.Provider value={todosStore.current}>
