@@ -8,7 +8,11 @@ export class InMemoryTodoRepository implements TodoRepository {
     return this.todos;
   }
 
-  async add(todo: Todo): Promise<void> {
-    this.todos.push(todo);
+  async setAll(todo: Todo[]): Promise<Todo[]> {
+    // sleep for 1 second
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    this.todos = todo;
+    return this.todos;
   }
 }
