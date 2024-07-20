@@ -1,3 +1,5 @@
+import { TodoList } from '@react-starter/todo';
+
 export default function Index() {
   /*
    * Replace the elements below with your own.
@@ -5,8 +7,6 @@ export default function Index() {
    * Note: The corresponding styles are in the ./index.tailwind file.
    */
   return (
-    <div>
-      Hello world
-    </div>
+    <TodoList />
   );
 }

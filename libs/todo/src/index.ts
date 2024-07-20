@@ -1,1 +1,1 @@
-export * from './lib/todo';
+export { TodoList } from './features/todo-list';
