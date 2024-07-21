@@ -7,14 +7,6 @@ export class InMemoryTodoRepository implements TodoRepository {
   async getAll(): Promise<Todo[]> {
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    if (this.todos.length === 0) {
-      this.todos = [
-        { message: 'Learn Next.js' },
-        { message: 'Build a Todo App' },
-        { message: 'Deploy to Vercel' },
-      ];
-    }
-
     return this.todos;
   }
 

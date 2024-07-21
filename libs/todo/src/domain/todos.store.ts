@@ -1,41 +1,73 @@
 import { createStore } from 'zustand';
 import { Todo } from '../model/todo';
+import { TodoRepository } from '../ports/todo-repository';
 
 export interface TodosProps {
-  initialTodos: Todo[];
-  setAllTodos: (todos: Todo[]) => Promise<Todo[]>;
+  todoRepository: TodoRepository;
 }
 
-type TodoState = {
+type LoadedState = {
+  loaded: true;
   todos: Todo[];
-  actions: {
-    addTodo: (todo: Todo) => void;
-    removeTodo: (index: number) => void;
-    editTodoMessage: (index: number, message: string) => void;
-  }
+  actions: Actions;
+}
+
+type LoadingState = {
+  loaded: false;
+  todos: null;
+  actions: Actions;
+}
+
+type TodoState = LoadedState | LoadingState;
+
+type Actions = {
+  loadTodos: () => void;
+  addTodo: (todo: Todo) => void;
+  removeTodo: (index: number) => void;
+  editTodoMessage: (index: number, message: string) => void;
 }
 
 export type TodosStore = ReturnType<typeof createTodosStore>;
 
-export const createTodosStore = ({ initialTodos, setAllTodos }: TodosProps) => {
+function assertLoaded(state: TodoState): asserts state is LoadedState {
+  if (!state.loaded) {
+    throw new Error('TodosStore not loaded');
+  }
+}
+
+export const createTodosStore = ({ todoRepository }: TodosProps) => {
   return createStore<TodoState>((set, get) => ({
-    _initialized: false,
-    todos: initialTodos,
+    loaded: false,
+    todos: null,
     actions: {
+      loadTodos: async () => {
+        const todos = await todoRepository.getAll();
+        set({loaded: true, todos})
+      },
       addTodo: async (todo: Todo) => {
-        const returnedTodos = await setAllTodos([...get().todos, todo]);
+        const state = get();
+        assertLoaded(state);
+        const newTodos = [...state.todos, todo];
+        set({ todos: newTodos });
+        const returnedTodos = await todoRepository.setAll(newTodos);
         set({ todos: returnedTodos });
       },
       removeTodo: async (index: number) => {
-        const newTodos = get().todos.filter((_, i) => i !== index);
-        const returnedTodos = await setAllTodos(newTodos);
+        const state = get();
+        assertLoaded(state);
+        const newTodos = state.todos.filter((_, i) => i !== index);
+        set({ todos: newTodos });
+        const returnedTodos = await todoRepository.setAll(newTodos);
         set({ todos: returnedTodos });
       },
       editTodoMessage: async (index: number, message: string) => {
-        const newTodos = get().todos.map((todo, i) =>
+        const state = get();
+        assertLoaded(state);
+        const newTodos = state.todos.map((todo, i) =>
           i === index ? { ...todo, message } : todo
         );
-        const returnedTodos = await setAllTodos(newTodos);
+        set({ todos: newTodos });
+        const returnedTodos = await todoRepository.setAll(newTodos);
         set({ todos: returnedTodos });
       },
     },
