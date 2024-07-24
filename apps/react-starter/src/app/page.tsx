@@ -1,6 +1,6 @@
 'use client'
 
-import { Todos } from '@react-starter/todo';
+import { TodoLoader } from '@react-starter/todo';
 import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
@@ -14,7 +14,7 @@ export default function Index() {
    */
   return (
     <QueryClientProvider client={queryClient}>
-      <Todos />
+      <TodoLoader />
     </QueryClientProvider>
   );
 }

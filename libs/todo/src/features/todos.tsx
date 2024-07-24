@@ -1,32 +1,28 @@
 import { LocalStorageTodoRepository } from '../infra/todo-repository';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { TodoList } from '../ui/todo-list';
-import { TodosStoreProvider } from '../domain/todos.store-provider';
-import { TodosStoreContext } from '../domain/todos.store-context';
 import { useStore } from 'zustand';
 import { AddTodoButton } from '../ui/add-todo-button';
 import { RemoveTodoButton } from '../ui/remove-todo-button';
+import { createTodosStore } from '../domain/todos.store';
+import { useQuery } from '@tanstack/react-query';
+import { Todo } from '../model/todo';
 
-function LoadedTodos() {
-  const todosStore = useContext(TodosStoreContext);
-
-  if (!todosStore) {
-    throw new Error('TodosStore not found');
+function Todos({ serverTodos }: { serverTodos: Todo[] }) {
+  const onSaveError = (error: string) => {
+    console.error(error);
   }
 
-  const { loaded, todos } = useStore(todosStore, (state) => ({
-    loaded: state.loaded,
+  const todosStore = useRef(createTodosStore({
+    onSaveError,
+    initialTodos: serverTodos,
+    todoRepository: new LocalStorageTodoRepository()
+  }));
+
+  const { todos } = useStore(todosStore.current, (state) => ({
     todos: state.todos,
   }))
-  const actions = useStore(todosStore, (state) => state.actions);
-
-  useEffect(() => {
-    actions.loadTodos();
-  }, []);
-
-  if (!loaded || !todos) {
-    return <div>Loading...</div>
-  }
+  const actions = useStore(todosStore.current, (state) => state.actions);
 
   return (
     <>
@@ -37,16 +33,21 @@ function LoadedTodos() {
   )
 }
 
-export function Todos() {
-  const [todosRepository] = useState(() => new LocalStorageTodoRepository());
+export function TodoLoader() {
+  const [todoRepository] = useState(() => new LocalStorageTodoRepository());
 
-  const onSaveError = (error: string) => {
-    console.error(error);
+  const { data: loadedTodos } = useQuery({
+    queryKey: ['todos'],
+    queryFn: async () => {
+      return await todoRepository.getAll();
+    },
+  });
+
+  if (!loadedTodos) {
+    return <div>Loading...</div>
   }
 
   return (
-    <TodosStoreProvider todoRepository={todosRepository} onSaveError={onSaveError}>
-     <LoadedTodos />
-    </TodosStoreProvider>
-  );
+    <Todos serverTodos={loadedTodos} />
+  )
 }

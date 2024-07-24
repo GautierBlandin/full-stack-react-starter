@@ -3,21 +3,13 @@ import { Todo } from '../model/todo';
 import { SuccessfulTodoOutput, TodoRepository } from '../ports/todo-repository';
 
 export interface TodosProps {
+  initialTodos: Todo[];
   todoRepository: TodoRepository;
   onSaveError: (error: string) => void;
 }
 
-type LoadedState = {
-  loaded: true;
+type TodoState = {
   todos: Todo[];
-} & CommonState;
-
-type LoadingState = {
-  loaded: false;
-  todos: null;
-} & CommonState;
-
-type CommonState = {
   actions: Actions;
 }
 
@@ -29,7 +21,7 @@ type Actions = {
   commitChanges: () => void;
 }
 
-type TodoState = LoadedState | LoadingState;
+type Change = AddTodoChange | RemoveTodoChange | EditTodoChange;
 
 type AddTodoChange = {
   type: 'TodoAdded'
@@ -45,8 +37,6 @@ type EditTodoChange = {
   index: number,
   message: string
 }
-
-type Change = AddTodoChange | RemoveTodoChange | EditTodoChange;
 
 function apply(todos: Todo[], change: Change): Todo[] {
   switch (change.type) {
@@ -67,28 +57,18 @@ function applyAll(todos: Todo[], changes: Change[]): Todo[] {
 
 export type TodosStore = ReturnType<typeof createTodosStore>;
 
-function assertLoaded(state: TodoState): asserts state is LoadedState {
-  if (!state.loaded) {
-    throw new Error('TodosStore not loaded');
-  }
-}
-
-export const createTodosStore = ({ todoRepository, onSaveError }: TodosProps) => {
+export const createTodosStore = ({ todoRepository, onSaveError, initialTodos }: TodosProps) => {
   const changeSet: Change[] = [];
-  let lastCommitedState
-  let commitedIndex = 0;
 
   return createStore<TodoState>((set, get) => ({
-    loaded: false,
-    todos: null,
+    todos: initialTodos,
     actions: {
       loadTodos: async () => {
         const todos = await todoRepository.getAll();
-        set({loaded: true, todos})
+        set({todos})
       },
       addTodo: async (todo: Todo) => {
         const state = get();
-        assertLoaded(state);
         const change: AddTodoChange = { type: 'TodoAdded' };
         changeSet.push(change);
         const newTodos = apply(state.todos, change);
@@ -96,7 +76,6 @@ export const createTodosStore = ({ todoRepository, onSaveError }: TodosProps) =>
       },
       removeTodo: async (index: number) => {
         const state = get();
-        assertLoaded(state);
         const change: RemoveTodoChange = { type: 'TodoRemoved', index };
         changeSet.push(change);
         const newTodos = apply(state.todos, change);
@@ -104,10 +83,8 @@ export const createTodosStore = ({ todoRepository, onSaveError }: TodosProps) =>
 
         state.actions.commitChanges();
       },
-
       editTodoMessage: async (index: number, message: string) => {
         const state = get();
-        assertLoaded(state);
         const change: EditTodoChange = { type: 'TodoEdited', index, message };
         changeSet.push(change);
         const newTodos = apply(state.todos, change);
@@ -117,7 +94,6 @@ export const createTodosStore = ({ todoRepository, onSaveError }: TodosProps) =>
       },
       commitChanges: async () => {
         const state = get();
-        assertLoaded(state);
 
         const changeSetLength = changeSet.length;
         const todoOutput = await todoRepository.setAll(state.todos);
@@ -127,10 +103,8 @@ export const createTodosStore = ({ todoRepository, onSaveError }: TodosProps) =>
           return;
         }
 
-        commitedIndex = changeSetLength;
         const newChanges = changeSet.slice(changeSetLength);
         const returnedTodos = (todoOutput as SuccessfulTodoOutput).todos;
-        lastCommitedState = returnedTodos;
         const updatedReturnedTodos = applyAll(returnedTodos, newChanges);
         set({ todos: updatedReturnedTodos });
       }
