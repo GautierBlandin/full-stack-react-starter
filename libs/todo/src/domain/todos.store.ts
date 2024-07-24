@@ -15,10 +15,10 @@ type TodoState = {
 
 type Actions = {
   loadTodos: () => void;
-  addTodo: (todo: Todo) => void;
-  removeTodo: (index: number) => void;
-  editTodoMessage: (index: number, message: string) => void;
-  commitChanges: () => void;
+  addTodo: () => Promise<void>;
+  removeTodo: (index: number) => Promise<void>;
+  editTodoMessage: (index: number, message: string) => Promise<void>;
+  commitChanges: () => Promise<void>;
 }
 
 type Change = AddTodoChange | RemoveTodoChange | EditTodoChange;
@@ -67,7 +67,7 @@ export const createTodosStore = ({ todoRepository, onSaveError, initialTodos }: 
         const todos = await todoRepository.getAll();
         set({todos})
       },
-      addTodo: async (todo: Todo) => {
+      addTodo: async () => {
         const state = get();
         const change: AddTodoChange = { type: 'TodoAdded' };
         changeSet.push(change);

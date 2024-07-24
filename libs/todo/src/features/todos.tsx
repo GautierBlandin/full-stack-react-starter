@@ -27,7 +27,7 @@ function Todos({ serverTodos }: { serverTodos: Todo[] }) {
   return (
     <>
       <TodoList todos={todos} onUpdateTodoMessage={(message, index) => actions.editTodoMessage(index, message)} />
-      <AddTodoButton onClick={() => actions.addTodo({ message: 'New Todo' })} />
+      <AddTodoButton onClick={() => actions.addTodo()} />
       <RemoveTodoButton onClick={() => actions.removeTodo(todos.length - 1)} />
     </>
   )
