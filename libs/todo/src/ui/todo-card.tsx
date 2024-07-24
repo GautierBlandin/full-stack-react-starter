@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Todo } from '../model/todo';
 
 interface TodoCardProps {
@@ -8,6 +8,10 @@ interface TodoCardProps {
 
 export function TodoCard({ todo, onBlur }: TodoCardProps) {
   const [message, setMessage] = useState(todo.message);
+
+  useEffect(() => {
+    setMessage(todo.message);
+  }, [todo.message]);
 
   const handleBlur = () => {
     if (message !== todo.message) {

@@ -1,4 +1,4 @@
-import { InMemoryTodoRepository } from '../infra/todo-repository';
+import { LocalStorageTodoRepository } from '../infra/todo-repository';
 import React, { useContext, useEffect, useState } from 'react';
 import { TodoList } from '../ui/todo-list';
 import { TodosStoreProvider } from '../domain/todos.store-provider';
@@ -38,10 +38,14 @@ function LoadedTodos() {
 }
 
 export function Todos() {
-  const [todosRepository] = useState(() => new InMemoryTodoRepository());
+  const [todosRepository] = useState(() => new LocalStorageTodoRepository());
+
+  const onSaveError = (error: string) => {
+    console.error(error);
+  }
 
   return (
-    <TodosStoreProvider todoRepository={todosRepository}>
+    <TodosStoreProvider todoRepository={todosRepository} onSaveError={onSaveError}>
      <LoadedTodos />
     </TodosStoreProvider>
   );
